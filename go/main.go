@@ -10,12 +10,12 @@ import (
 	"io/ioutil"
 	"log"
 	"math"
+	"math/rand"
 	"net/http"
 	"os"
 	"sort"
 	"strconv"
 	"time"
-	"math/rand"
 
 	_ "net/http/pprof"
 
@@ -593,9 +593,9 @@ func trainSearchHandler(w http.ResponseWriter, r *http.Request) {
 
 	type Deps struct {
 		TrainName string `db:"train_name"`
-		Station string `db:"station"`
+		Station   string `db:"station"`
 		Departure string `db:"departure"`
-		Arrival string `db:"arrival"`
+		Arrival   string `db:"arrival"`
 	}
 
 	departureList := []Deps{}
@@ -615,11 +615,11 @@ func trainSearchHandler(w http.ResponseWriter, r *http.Request) {
 	name2deps := map[string]string{}
 	name2arrs := map[string]string{}
 
-	for _,dep := range departureList {
+	for _, dep := range departureList {
 		name2deps[dep.TrainName] = dep.Departure
 	}
 
-	for _,arr := range arrivalList {
+	for _, arr := range arrivalList {
 		name2arrs[arr.TrainName] = arr.Arrival
 	}
 
@@ -671,7 +671,7 @@ func trainSearchHandler(w http.ResponseWriter, r *http.Request) {
 			// 所要時間
 			var departure, arrival string
 
-			departure,exist := name2deps[train.TrainName]
+			departure, exist := name2deps[train.TrainName]
 			//err = dbx.Get(&departure, "SELECT departure FROM train_timetable_master WHERE date=? AND train_class=? AND train_name=? AND station=?", date.Format("2006/01/02"), train.TrainClass, train.TrainName, fromStation.Name)
 			if !exist {
 				errorResponse(w, http.StatusInternalServerError, err.Error())
@@ -689,7 +689,7 @@ func trainSearchHandler(w http.ResponseWriter, r *http.Request) {
 				continue
 			}
 
-			arrival,exist = name2arrs[train.TrainName]
+			arrival, exist = name2arrs[train.TrainName]
 			//err = dbx.Get(&arrival, "SELECT arrival FROM train_timetable_master WHERE date=? AND train_class=? AND train_name=? AND station=?", date.Format("2006/01/02"), train.TrainClass, train.TrainName, toStation.Name)
 			if !exist {
 				errorResponse(w, http.StatusInternalServerError, err.Error())
@@ -1220,14 +1220,13 @@ func trainReservationHandler(w http.ResponseWriter, r *http.Request) {
 
 		req.Seats = []RequestSeat{} // 座席リクエスト情報は空に
 
-		carnums := make([]int,0,16)
-		for carnum := 1; carnum <= 16;carnum++ {
-			carnums = append(carnums,carnum)
+		carnums := make([]int, 0, 16)
+		for carnum := 1; carnum <= 16; carnum++ {
+			carnums = append(carnums, carnum)
 		}
 
 		rand.Seed(time.Now().UnixNano())
-		rand.Shuffle(len(carnums),func(i,j int){carnums[i],carnums[j] = carnums[j],carnums[i] })
-
+		rand.Shuffle(len(carnums), func(i, j int) { carnums[i], carnums[j] = carnums[j], carnums[i] })
 
 		for carnum := range carnums {
 			seatList := []Seat{}
@@ -1334,7 +1333,7 @@ WHERE
 				seatsCount[seat.Row].cou++
 				seatsCount[seat.Row].idx = seat.Row
 			}
-			sort.Slice(seatsCount, func(i, j int) bool { return seatsCount[i].cou < seatsCount[j].cou })
+			sort.Slice(seatsCount, func(i, j int) bool { return seatsCount[i].cou > seatsCount[j].cou })
 			seatInformationList = make([]SeatInformation, 0, len(seatInformationList))
 			for _, sc := range seatsCount {
 				seatInformationList = append(seatInformationList, seatsByRow[sc.idx]...)
