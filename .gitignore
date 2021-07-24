@@ -1,5 +1,7 @@
 sql/94_*
 sql/90_*
+go/go.sum
+go/go.mod
 public
 frontend
 log
