@@ -55,13 +55,15 @@ type Fare struct {
 }
 
 type Train struct {
-	Date         time.Time `json:"date" db:"date"`
-	DepartureAt  string    `json:"departure_at" db:"departure_at"`
-	TrainClass   string    `json:"train_class" db:"train_class"`
-	TrainName    string    `json:"train_name" db:"train_name"`
-	StartStation string    `json:"start_station" db:"start_station"`
-	LastStation  string    `json:"last_station" db:"last_station"`
-	IsNobori     bool      `json:"is_nobori" db:"is_nobori"`
+	Date           time.Time `json:"date" db:"date"`
+	DepartureAt    string    `json:"departure_at" db:"departure_at"`
+	TrainClass     string    `json:"train_class" db:"train_class"`
+	TrainName      string    `json:"train_name" db:"train_name"`
+	StartStation   string    `json:"start_station" db:"start_station"`
+	LastStation    string    `json:"last_station" db:"last_station"`
+	StartStationID int       `json:"_" db:"start_station_id"`
+	LastStationID  int       `json:"_" db:"last_station_id"`
+	IsNobori       bool      `json:"is_nobori" db:"is_nobori"`
 }
 
 type Seat struct {
