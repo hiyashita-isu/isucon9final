@@ -3,3 +3,4 @@ sql/90_*
 public
 frontend
 log
+.log
