@@ -829,9 +829,6 @@ WHERE
 
 		err = dbx.Select(
 			&seatReservationList, query,
-			date.Format("2006/01/02"),
-			seat.TrainClass,
-			trainName,
 			seat.CarNumber,
 			seat.SeatRow,
 			seat.SeatColumn,
