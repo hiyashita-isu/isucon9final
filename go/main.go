@@ -12,6 +12,7 @@ import (
 	"math"
 	"net/http"
 	"os"
+	"sort"
 	"strconv"
 	"time"
 
@@ -1276,6 +1277,23 @@ WHERE
 			}
 			var CandidateSeat RequestSeat
 			CandidateSeats := []RequestSeat{}
+
+			seatsByRow := map[int][]SeatInformation{}
+			type IWI struct {
+				cou int
+				idx int
+			}
+			seatsCount := make([]IWI, 30)
+			for _, seat := range seatInformationList {
+				seatsByRow[seat.Row] = append(seatsByRow[seat.Row], seat)
+				seatsCount[seat.Row].cou++
+				seatsCount[seat.Row].idx = seat.Row
+			}
+			sort.Slice(seatsCount, func(i, j int) bool { return seatsCount[i].cou < seatsCount[j].cou })
+			seatInformationList = make([]SeatInformation, 0, len(seatInformationList))
+			for _, sc := range seatsCount {
+				seatInformationList = append(seatInformationList, seatsByRow[sc.idx]...)
+			}
 
 			// シート分だけ回して予約できる席を検索
 			var i int
