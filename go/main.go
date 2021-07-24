@@ -617,7 +617,7 @@ func trainSearchHandler(w http.ResponseWriter, r *http.Request) {
 		name2deps[dep.TrainName] = dep.Departure
 	}
 
-	for _,arr := range arraivalList {
+	for _,arr := range arrivalList {
 		name2arrs[arr.TrainName] = arr.Arrival
 	}
 
