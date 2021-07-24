@@ -46,7 +46,31 @@ type Station struct {
 	IsStopLocal       bool    `json:"is_stop_local" db:"is_stop_local"`
 }
 
-// func StationMasters []Station
+var StationMasters []Station
+var StationMastersByName map[string]Station
+
+func loadStationMasters() error {
+	err := dbx.Select(&StationMasters, "SELECT * FROM station_master")
+	if err != nil {
+		return err
+	}
+	for _, s := range StationMasters {
+		StationMastersByName[s.Name] = s
+	}
+	return nil
+}
+func findStationByID(id int) (Station, error) {
+	if len(StationMasters) < id {
+		return Station{}, sql.ErrNoRows
+	}
+	return StationMasters[id-1], nil
+}
+func findStationByName(name string) (Station, error) {
+	if s, ok := StationMastersByName[name]; ok {
+		return s, nil
+	}
+	return Station{}, sql.ErrNoRows
+}
 
 type DistanceFare struct {
 	Distance float64 `json:"distance" db:"distance"`
@@ -865,16 +889,13 @@ WHERE
 		for _, fullReservation := range fullReservationList {
 			reservation, _ := fullReservation.decompose()
 
-			var departureStation, arrivalStation Station
-			query = "SELECT * FROM station_master WHERE name=?"
-
-			err = dbx.Get(&departureStation, query, reservation.Departure)
+			departureStation, err := findStationByName(reservation.Departure)
 			if err != nil {
-				panic(err)
+				log.Print(err)
 			}
-			err = dbx.Get(&arrivalStation, query, reservation.Arrival)
+			arrivalStation, err := findStationByName(reservation.Arrival)
 			if err != nil {
-				panic(err)
+				log.Print(err)
 			}
 
 			if train.IsNobori {
