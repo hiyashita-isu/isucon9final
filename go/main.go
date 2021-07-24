@@ -50,6 +50,7 @@ var StationMasters []Station
 var StationMastersByName map[string]Station
 
 func loadStationMasters() error {
+	StationMastersByName = map[string]Station{}
 	err := dbx.Select(&StationMasters, "SELECT * FROM station_master")
 	if err != nil {
 		return err
