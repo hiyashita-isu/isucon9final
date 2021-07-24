@@ -589,6 +589,38 @@ func trainSearchHandler(w http.ResponseWriter, r *http.Request) {
 	fmt.Println("From", fromStation)
 	fmt.Println("To", toStation)
 
+	type Deps struct {
+		TrainName string `db:"train_name"`
+		Station string `db:"station"`
+		Departure string `db:"departure"`
+		Arrival string `db:"arrival"`
+	}
+
+	departureList := []Deps{}
+	arrivalList := []Deps{}
+
+	dbx.Select(&departureList,
+		"SELECT departure,train_name,arrival,station FROM train_timetable_master WHERE date = ? AND station = ?",
+		date.Format("2006/01/02"),
+		fromStation.Name
+	)
+	dbx.Select(&arrivalList,
+		"SELECT departure,train_name,arrival,station FROM train_timetable_master WHERE date = ? AND station = ?",
+		date.Format("2006/01/02"),
+		toStation.Name
+	)
+
+	name2deps := map[string]string{}
+	name2arrs := map[string]string{}
+
+	for _,dep := range departureList {
+		name2deps[dep.TrainName] = dep.Departure
+	}
+
+	for _,arr := range arraivalList {
+		name2arrs[arr.TrainName] = arr.Arrival
+	}
+
 	trainSearchResponseList := []TrainSearchResponse{}
 
 	for _, train := range trainList {
@@ -637,8 +669,9 @@ func trainSearchHandler(w http.ResponseWriter, r *http.Request) {
 			// 所要時間
 			var departure, arrival string
 
-			err = dbx.Get(&departure, "SELECT departure FROM train_timetable_master WHERE date=? AND train_class=? AND train_name=? AND station=?", date.Format("2006/01/02"), train.TrainClass, train.TrainName, fromStation.Name)
-			if err != nil {
+			departure,exist := name2deps[train.TrainName]
+			//err = dbx.Get(&departure, "SELECT departure FROM train_timetable_master WHERE date=? AND train_class=? AND train_name=? AND station=?", date.Format("2006/01/02"), train.TrainClass, train.TrainName, fromStation.Name)
+			if !exist {
 				errorResponse(w, http.StatusInternalServerError, err.Error())
 				return
 			}
@@ -654,8 +687,9 @@ func trainSearchHandler(w http.ResponseWriter, r *http.Request) {
 				continue
 			}
 
-			err = dbx.Get(&arrival, "SELECT arrival FROM train_timetable_master WHERE date=? AND train_class=? AND train_name=? AND station=?", date.Format("2006/01/02"), train.TrainClass, train.TrainName, toStation.Name)
-			if err != nil {
+			arrival,exist = name2arrs[train.TrainName]
+			//err = dbx.Get(&arrival, "SELECT arrival FROM train_timetable_master WHERE date=? AND train_class=? AND train_name=? AND station=?", date.Format("2006/01/02"), train.TrainClass, train.TrainName, toStation.Name)
+			if !exist {
 				errorResponse(w, http.StatusInternalServerError, err.Error())
 				return
 			}
