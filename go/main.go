@@ -602,12 +602,12 @@ func trainSearchHandler(w http.ResponseWriter, r *http.Request) {
 	dbx.Select(&departureList,
 		"SELECT departure,train_name,arrival,station FROM train_timetable_master WHERE date = ? AND station = ?",
 		date.Format("2006/01/02"),
-		fromStation.Name
+		fromStation.Name,
 	)
 	dbx.Select(&arrivalList,
 		"SELECT departure,train_name,arrival,station FROM train_timetable_master WHERE date = ? AND station = ?",
 		date.Format("2006/01/02"),
-		toStation.Name
+		toStation.Name,
 	)
 
 	name2deps := map[string]string{}
