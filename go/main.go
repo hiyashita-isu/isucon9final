@@ -510,10 +510,10 @@ func trainSearchHandler(w http.ResponseWriter, r *http.Request) {
 		maxStationID = toStation.ID
 	}
 	if trainClass == "" {
-		query := "SELECT * FROM train_master WHERE date=? AND train_class IN (?) AND is_nobori=? AND (start_station <= ? OR last_station <= ?) AND (start_station >= ? AND last_station >= ?)"
+		query := "SELECT * FROM train_master WHERE date=? AND train_class IN (?) AND is_nobori=? AND (start_station <= ? OR last_station <= ?) AND (start_station >= ? OR last_station >= ?)"
 		inQuery, inArgs, err = sqlx.In(query, date.Format("2006/01/02"), usableTrainClassList, isNobori, minStationID, minStationID, maxStationID, maxStationID)
 	} else {
-		query := "SELECT * FROM train_master WHERE date=? AND train_class IN (?) AND is_nobori=? AND train_class=? AND (start_station <= ? OR last_station <= ?) AND (start_station >= ? AND last_station >= ?)"
+		query := "SELECT * FROM train_master WHERE date=? AND train_class IN (?) AND is_nobori=? AND train_class=? AND (start_station <= ? OR last_station <= ?) AND (start_station >= ? OR last_station >= ?)"
 		inQuery, inArgs, err = sqlx.In(query, date.Format("2006/01/02"), usableTrainClassList, isNobori, trainClass, minStationID, minStationID, maxStationID, maxStationID)
 	}
 	if err != nil {
