@@ -69,7 +69,7 @@ func (train Train) getAvailableSeats(fromStation Station, toStation Station, sea
 
 	// すでに取られている予約を取得する
 	query = `
-	SELECT sr.reservation_id, sr.car_number, sr.seat_row, sr.seat_column
+	SELECT DISTINCT sr.car_number, sr.seat_row, sr.seat_column
 	FROM seat_reservations sr, reservations r, seat_master s, station_master std, station_master sta
 	WHERE
 		r.reservation_id=sr.reservation_id AND
