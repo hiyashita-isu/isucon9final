@@ -15,6 +15,9 @@ import (
 	"strconv"
 	"time"
 
+	_ "net/http/pprof"
+	"github.com/felixge/fgprof"
+
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/gorilla/sessions"
 	"github.com/jmoiron/sqlx"
@@ -2118,6 +2121,12 @@ func dummyHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func main() {
+	http.DefaultServeMux.Handle("/debug/fgprof", fgprof.Handler())
+	go func() {
+		log.Println(http.ListenAndServe(":6060", nil))
+	}()
+
+
 	// MySQL関連のお膳立て
 	var err error
 
