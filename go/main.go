@@ -16,6 +16,7 @@ import (
 	"time"
 
 	_ "net/http/pprof"
+
 	"github.com/felixge/fgprof"
 
 	_ "github.com/go-sql-driver/mysql"
@@ -518,7 +519,7 @@ func trainSearchHandler(w http.ResponseWriter, r *http.Request) {
 		query := "SELECT * FROM train_master WHERE date=? AND train_class IN (?) AND is_nobori=? AND (start_station_id <= ? OR last_station_id <= ?) AND (start_station_id >= ? OR last_station_id >= ?)"
 		inQuery, inArgs, err = sqlx.In(query, date.Format("2006/01/02"), usableTrainClassList, isNobori, minStationID, minStationID, maxStationID, maxStationID)
 	} else {
-		query := "SELECT * FROM train_master WHERE date=? AND train_class IN (?) AND is_nobori=? AND train_class=? AND (start_station_id <= ? OR last_station_id <= ?) AND (start_station_id >= ? OR last_station_id >= ?)"
+		query := "SELECT * FROM train_master WHERE date=? AND train_class=? AND is_nobori=? AND (start_station_id <= ? OR last_station_id <= ?) AND (start_station_id >= ? OR last_station_id >= ?)"
 		inQuery, inArgs, err = sqlx.In(query, date.Format("2006/01/02"), usableTrainClassList, isNobori, trainClass, minStationID, minStationID, maxStationID, maxStationID)
 	}
 	if err != nil {
@@ -1588,7 +1589,7 @@ func reservationPaymentHandler(w http.ResponseWriter, r *http.Request) {
 
 	// 予約IDで検索
 	reservation := Reservation{}
-	query := "SELECT * FROM reservations WHERE reservation_id=?"
+	query := "SELECT * FROM reservations WHERE reservation_id=? FOR UPDATE"
 	err = tx.Get(
 		&reservation, query,
 		req.ReservationId,
@@ -1679,6 +1680,8 @@ func reservationPaymentHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	//もう支払い済みなのでロールバックしないでね
+
 	// 予約情報の更新
 	query = "UPDATE reservations SET status=?, payment_id=? WHERE reservation_id=?"
 	_, err = tx.Exec(
@@ -1690,7 +1693,7 @@ func reservationPaymentHandler(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		tx.Rollback()
 		errorResponse(w, http.StatusInternalServerError, "予約情報の更新に失敗しました")
-		log.Println(err.Error())
+		log.Fatal(err.Error())
 		return
 	}
 
@@ -1701,7 +1704,7 @@ func reservationPaymentHandler(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		tx.Rollback()
 		errorResponse(w, http.StatusInternalServerError, "レスポンスの生成に失敗しました")
-		log.Println(err.Error())
+		log.Fatal(err.Error())
 		return
 	}
 	tx.Commit()
@@ -2125,7 +2128,6 @@ func main() {
 	go func() {
 		log.Println(http.ListenAndServe(":6060", nil))
 	}()
-
 
 	// MySQL関連のお膳立て
 	var err error
