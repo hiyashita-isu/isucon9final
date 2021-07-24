@@ -821,10 +821,10 @@ func trainSeatsHandler(w http.ResponseWriter, r *http.Request) {
 		seatReservationList := []SeatReservation{}
 
 		query := `
-SELECT s.*
-FROM seat_reservations s, reservations r
+SELECT *
+FROM seat_reservations
 WHERE
-	r.date=? AND r.train_class=? AND r.train_name=? AND car_number=? AND seat_row=? AND seat_column=?
+	car_number=? AND seat_row=? AND seat_column=?
 `
 
 		err = dbx.Select(
