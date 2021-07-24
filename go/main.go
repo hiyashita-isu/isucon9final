@@ -841,7 +841,7 @@ func trainSeatsHandler(w http.ResponseWriter, r *http.Request) {
 
 		query := `
 SELECT r.*, s.car_number car_number, s.seat_row seat_row, s.seat_column seat_column  
-FROM seat_reservations s
+FROM reservations r, seat_reservations s
 WHERE
 	r.date=? AND r.train_class=? AND r.train_name=? AND car_number=? AND seat_row=? AND seat_column=?
 `
