@@ -1217,7 +1217,17 @@ func trainReservationHandler(w http.ResponseWriter, r *http.Request) {
 		}
 
 		req.Seats = []RequestSeat{} // 座席リクエスト情報は空に
-		for carnum := 1; carnum <= 16; carnum++ {
+
+		carnums := make([]int,0,16)
+		for carnum := 1; carnum <= 16;carnum++ {
+			carnums = append(carnums,carnum)
+		}
+
+		rand.Seed(time.Now().UnixNano())
+		rand.Shuffle(len(carnums),func(i,j int){carnums[i],carnums[j] = carnums[j],carnums[i] })
+
+
+		for carnum := range carnums {
 			seatList := []Seat{}
 			query = "SELECT * FROM seat_master WHERE train_class=? AND car_number=? AND seat_class=? AND is_smoking_seat=? ORDER BY seat_row, seat_column"
 			err = dbx.Select(&seatList, query, req.TrainClass, carnum, req.SeatClass, req.IsSmokingSeat)
