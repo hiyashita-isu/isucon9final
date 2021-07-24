@@ -46,6 +46,8 @@ type Station struct {
 	IsStopLocal       bool    `json:"is_stop_local" db:"is_stop_local"`
 }
 
+// func StationMasters []Station
+
 type DistanceFare struct {
 	Distance float64 `json:"distance" db:"distance"`
 	Fare     int     `json:"fare" db:"fare"`
@@ -100,6 +102,23 @@ type SeatReservation struct {
 	CarNumber     int    `json:"car_number,omitempty" db:"car_number"`
 	SeatRow       int    `json:"seat_row" db:"seat_row"`
 	SeatColumn    string `json:"seat_column" db:"seat_column"`
+}
+
+type FullReservation struct {
+	Reservation
+	CarNumber  int    `json:"car_number,omitempty" db:"car_number"`
+	SeatRow    int    `json:"seat_row" db:"seat_row"`
+	SeatColumn string `json:"seat_column" db:"seat_column"`
+}
+
+func (r FullReservation) decompose() (Reservation, SeatReservation) {
+	return r.Reservation,
+		SeatReservation{
+			r.ReservationId,
+			r.CarNumber,
+			r.SeatRow,
+			r.SeatColumn,
+		}
 }
 
 // 未整理
@@ -818,17 +837,20 @@ func trainSeatsHandler(w http.ResponseWriter, r *http.Request) {
 
 		s := SeatInformation{seat.SeatRow, seat.SeatColumn, seat.SeatClass, seat.IsSmokingSeat, false}
 
-		seatReservationList := []SeatReservation{}
+		fullReservationList := []FullReservation{}
 
 		query := `
-SELECT *
-FROM seat_reservations
+SELECT r.*, s.car_number car_number, s.seat_row seat_row, s.seat_column seat_column  
+FROM seat_reservations s
 WHERE
-	car_number=? AND seat_row=? AND seat_column=?
+	r.date=? AND r.train_class=? AND r.train_name=? AND car_number=? AND seat_row=? AND seat_column=?
 `
 
 		err = dbx.Select(
-			&seatReservationList, query,
+			&fullReservationList, query,
+			date.Format("2006/01/02"),
+			seat.TrainClass,
+			trainName,
 			seat.CarNumber,
 			seat.SeatRow,
 			seat.SeatColumn,
@@ -838,15 +860,10 @@ WHERE
 			return
 		}
 
-		fmt.Println(seatReservationList)
+		// fmt.Println(seatReservationList)
 
-		for _, seatReservation := range seatReservationList {
-			reservation := Reservation{}
-			query = "SELECT * FROM reservations WHERE reservation_id=?"
-			err = dbx.Get(&reservation, query, seatReservation.ReservationId)
-			if err != nil {
-				panic(err)
-			}
+		for _, fullReservation := range fullReservationList {
+			reservation, _ := fullReservation.decompose()
 
 			var departureStation, arrivalStation Station
 			query = "SELECT * FROM station_master WHERE name=?"
